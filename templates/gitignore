@@ -1,0 +1,68 @@
+# .gitignore — sensible, safety-first defaults for an AI-assisted project.
+# Installed by ai-project-kit as the target repo's .gitignore. Tune to your stack.
+#
+# NOTE: the AI instruction files are intentionally NOT ignored — they're shared and
+# must be committed: AGENTS.md, CLAUDE.md, .github/copilot-instructions.md,
+# .cursor/rules/, .windsurf/rules/, .editorconfig, docs/ai/.
+
+# ── Data — NEVER commit (critical in a regulated / data-boundary context) ──────────
+# Keep real microdata out of the repo entirely; work on schema + synthetic fixtures.
+# This is deliberately conservative — force a legitimate file in with `git add -f`.
+*.csv
+*.tsv
+*.dat
+*.parquet
+*.feather
+*.xls
+*.xlsx
+*.sas7bdat
+*.sav
+/data/
+/golden/          # golden/reference outputs are often Confidential — keep out of repo
+# …but allow curated, synthetic test fixtures back in despite the patterns above:
+!tests/fixtures/
+!tests/fixtures/**
+
+# ── Generated artifacts & run outputs ──────────────────────────────────────────────
+*_run_log*.txt
+*_compare_log*.txt
+*.log
+/logs/
+/output/
+/dist/
+/build/
+
+# ── AI agent runtime (transcripts, caches) — keep instructions, drop runtime ────────
+*.local.json        # e.g. .claude/settings.local.json (user-local, not shared)
+**/agent-*.jsonl
+.aider*
+.continue/
+/.ai-runs/
+
+# ── Secrets / env ───────────────────────────────────────────────────────────────────
+.env
+.env.*
+*.pem
+*.key
+secrets.*
+
+# ── Python ──────────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# ── OS / editor cruft ───────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/*
+!.vscode/extensions.json

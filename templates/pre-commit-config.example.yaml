@@ -1,0 +1,36 @@
+# Mechanical guardrails — the AGENTS.md "do NOT" rules, enforced so they can't be
+# forgotten. A hook is stronger than a sentence; the data-leak hook especially must be
+# a hard gate, not a hope. Install: pip install pre-commit && pre-commit install
+# Then ALSO run `pre-commit run --all-files` in CI so it can't be skipped locally.
+#
+# Tune every pattern to your repo before relying on it.
+repos:
+  - repo: local
+    hooks:
+      # CRITICAL in a regulated/boundary context: block data values / PII from ever
+      # being committed (and, paired with your agent's prompt path, from egress).
+      - id: block-data-values
+        name: block likely data values / PII in staged diff
+        entry: bash -c 'git diff --cached -U0 | grep -nE "<<PII-OR-VALUE-REGEX>>" && { echo "Possible data value in diff — BLOCKED"; exit 1; } || true'
+        language: system
+        pass_filenames: false
+
+      # Don't commit generated artifacts (logs, build/output, data files).
+      - id: block-generated-artifacts
+        name: block committing generated artifacts
+        entry: bash -c 'git diff --cached --name-only | grep -E "(\.parquet$|_logs?\.txt$|^output/|/output/)" && { echo "Generated artifact staged — BLOCKED"; exit 1; } || true'
+        language: system
+        pass_filenames: false
+
+      # Project convention: tests/ are not committed unless explicitly intended.
+      - id: warn-tests-staged
+        name: warn when tests/ is staged
+        entry: bash -c 'git diff --cached --name-only | grep -E "^tests/" && echo "NOTE: tests/ staged — confirm this is intended" || true'
+        language: system
+        pass_filenames: false
+
+  # Add your stack's linters/formatters below, e.g. ruff / black / mypy, so AI diffs
+  # arrive already clean:
+  # - repo: https://github.com/astral-sh/ruff-pre-commit
+  #   rev: <pin>
+  #   hooks: [{id: ruff}, {id: ruff-format}]

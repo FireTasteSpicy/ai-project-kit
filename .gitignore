@@ -1,0 +1,7 @@
+# ai-project-kit's own ignores. The kit is pure docs + scripts, so there's little to
+# drop — just local cruft and any throwaway install used for testing.
+.DS_Store
+Thumbs.db
+*.swp
+*~
+/.test-install/

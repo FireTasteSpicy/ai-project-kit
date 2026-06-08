@@ -1,0 +1,10 @@
+---
+description: Project-wide AI instructions (points to AGENTS.md)
+alwaysApply: true
+---
+
+Your primary instructions for this repository are in [AGENTS.md](mdc:AGENTS.md).
+
+Read it first and treat it as authoritative. Do not duplicate its rules here —
+AGENTS.md is the single source of truth. (Recent Cursor versions also read AGENTS.md
+natively; this rule guarantees it is applied even if that changes.)

@@ -1,0 +1,20 @@
+# Tool-agnostic editor baseline. Every major editor + AI tool respects this,
+# which keeps AI-generated diffs from churning whitespace/encoding.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.{py,sas}]
+indent_size = 4
+
+[*.md]
+trim_trailing_whitespace = false  # trailing spaces are significant in Markdown
+
+[Makefile]
+indent_style = tab
