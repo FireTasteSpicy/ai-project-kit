@@ -1,0 +1,147 @@
+================================================================================
+ai-project-kit — Directory Structure & File Summary
+================================================================================
+
+WHAT THIS REPO IS
+  A reusable, vendor-neutral starter kit for giving AI coding assistants ONE
+  consistent set of project instructions. You write your rules once in
+  AGENTS.md, and Cursor, GitHub Copilot, Claude Code, Windsurf, OpenAI Codex,
+  Zed, Aider, etc. all follow them — tools that don't read AGENTS.md natively
+  get a thin one-line "pointer" file that redirects to it, so rules never drift.
+
+  The kit itself is pure docs + scripts (no application code).
+
+--------------------------------------------------------------------------------
+ROOT FILES
+--------------------------------------------------------------------------------
+
+AGENTS.md
+  The canonical, vendor-neutral instruction TEMPLATE — the single source of
+  truth and the only file you fill in. ~10 sections (project purpose, stack &
+  layout, commands, the contract/invariants, stop-and-escalate, workflow,
+  guardrails/"do NOT", definition-of-done) with <!-- TODO --> placeholders.
+  Designed to be short and skimmable so it actually gets followed.
+
+README.md
+  Kit overview and quick start. Explains the "edit one file, all tools obey"
+  idea with a diagram, a table of what's inside, and how to install onto a new
+  or existing project (incl. optional profiles).
+
+.editorconfig
+  Tool-agnostic whitespace/encoding baseline (UTF-8, LF, final newline, trim
+  trailing whitespace, indent sizes). Stops AI-generated diffs from churning
+  whitespace/encoding. Special cases: 4-space for .py/.sas, no trim for .md,
+  tabs for Makefile.
+
+.gitignore
+  The KIT's own ignores (not the one shipped to target repos). Just local
+  cruft: .DS_Store, Thumbs.db, *.swp, editor backups, and /.test-install/.
+
+--------------------------------------------------------------------------------
+adapters/ — per-tool pointer files (one line: "read AGENTS.md")
+--------------------------------------------------------------------------------
+
+adapters/README.md
+  Explains the adapters concept: thin pointer files containing NO rules, each
+  redirecting one assistant to root AGENTS.md. Includes a table of where
+  install.sh copies each pointer and which tool reads it.
+
+adapters/CLAUDE.md
+  Pointer file for Claude Code. Installs to <repo>/CLAUDE.md. Says "read
+  AGENTS.md, treat as authoritative, don't add rules here."
+
+adapters/github/copilot-instructions.md
+  Pointer for GitHub Copilot. Installs to <repo>/.github/copilot-instructions.md.
+
+adapters/cursor/rules/00-agents.mdc
+  Pointer for Cursor (with frontmatter: alwaysApply: true). Installs to
+  <repo>/.cursor/rules/00-agents.mdc.
+
+adapters/windsurf/rules/agents.md
+  Pointer for Windsurf (frontmatter: trigger: always_on). Installs to
+  <repo>/.windsurf/rules/agents.md.
+
+--------------------------------------------------------------------------------
+templates/ — reusable, vendor-neutral artifacts dropped into target repos
+--------------------------------------------------------------------------------
+
+templates/gitignore
+  Safety-first .gitignore for an AI-assisted project (installs as the target
+  repo's .gitignore). Aggressively blocks data files (*.csv, *.parquet,
+  *.sas7bdat, /data/, /golden/, etc.) to keep real data out of the repo, while
+  re-allowing curated synthetic tests/fixtures/. Also ignores generated
+  artifacts/logs and AI-agent runtime files — but deliberately KEEPS the shared
+  instruction files committed.
+
+templates/PULL_REQUEST_TEMPLATE.md
+  Standard PR/MR structure for AI-assisted changes: what changed, source of
+  truth (cite spec/reference lines), verification checklist, oracle diff SUMMARY
+  only (never raw data), assumptions & rule gaps, risk/blast radius. Notes the
+  install paths for GitHub vs GitLab.
+
+templates/decision-log.md
+  Append-only log (newest first) of judgment calls made when the spec/rules were
+  silent or ambiguous, so the same gap never costs a second escalation.
+  Resolutions get folded back into AGENTS.md / the rules doc.
+
+templates/pre-commit-config.example.yaml
+  Mechanical guardrails that enforce the AGENTS.md "do NOT" rules as hard gates:
+  block likely PII/data values in the staged diff, block generated artifacts,
+  warn when tests/ are staged. Placeholder hooks for the project's own
+  linters/formatters (ruff/black/mypy).
+
+--------------------------------------------------------------------------------
+profiles/ — opt-in specialisations for a project TYPE
+--------------------------------------------------------------------------------
+
+profiles/legacy-parity-migration/README.md
+  Describes the profile: for porting a legacy system to a new stack where a
+  known-good output is the ORACLE (SAS→Python/Polars, COBOL→Java, stored-proc→
+  service), validated against golden outputs via a translate→test→diff→fix loop.
+  Lists what it adds and how to apply it (installs into docs/ai/).
+
+profiles/legacy-parity-migration/AGENTS.overlay.md
+  Parity-specific sections (4: contract/invariants, 6: the parity loop, 7:
+  guardrails) to MERGE into the project's AGENTS.md, then delete. Covers
+  tolerance, row order, whitespace/width, missing-value semantics, and the
+  "iterate on synthetic fixtures, run the real golden diff only in-boundary in
+  CI" rule.
+
+profiles/legacy-parity-migration/parity-playbook.md
+  The scaffolding to build BEFORE scaling agent autonomy: harden the oracle
+  (frozen+checksummed inputs, validate the diff tool legacy-vs-legacy,
+  neutralise non-determinism, audit golden coverage), add per-stage oracles, and
+  make the loop fast+safe with schema-shaped synthetic fixtures.
+
+profiles/legacy-parity-migration/sas-to-polars-mapping.md
+  SAS→Polars translation cheatsheet AND footgun list. Tables of construct
+  mappings (DATA step, MERGE vs join, FIRST./LAST., RETAIN, NODUPKEY, PROC SORT,
+  etc.) and value-level semantics (missing values, 1960 date epoch, half-away
+  rounding vs banker's, fixed-width padding). Meant to be fed to the assistant's
+  retrieval corpus and kept current. Includes a "top 5 to check on every job."
+
+--------------------------------------------------------------------------------
+examples/ — a filled-in reference
+--------------------------------------------------------------------------------
+
+examples/AGENTS.sas-to-python-parity.md
+  A fully filled-in AGENTS.md for a real SAS→Python byte-for-byte parity port
+  (lessons from a 115-commit migration). Shows the level of specificity that
+  pays off — copy the SHAPE, not the contents.
+
+--------------------------------------------------------------------------------
+scripts/ — installer
+--------------------------------------------------------------------------------
+
+scripts/install.sh
+  Installs the kit into a target repository: copies the canonical AGENTS.md, the
+  per-tool pointer files, .editorconfig, and the templates. With
+  --profile <name>, also installs a specialisation overlay into docs/ai/.
+  Idempotent (skips existing files unless --force).
+  Usage: scripts/install.sh <target-repo> [--profile <name>] [--force]
+
+================================================================================
+TOTAL: 19 tracked files. Pure documentation + one install script.
+Core mental model: AGENTS.md is the single source of truth; everything else
+either points to it, installs it, specialises it, or demonstrates it.
+================================================================================
