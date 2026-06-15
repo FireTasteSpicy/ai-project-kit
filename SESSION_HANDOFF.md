@@ -1,57 +1,84 @@
 # Session Handoff — "Teresa and Ijooz" ballad (real vocals)
 
-> Pick this up in a **fresh** Claude Code session. Everything needed is here or in
-> the environment settings. **No secret is stored in this file by design** — see
-> "Credentials" below.
+> Pick this up in a **fresh** Claude Code session **after the egress fix below**.
+> **No secret is stored in this file by design** — see "Credentials".
 
 ## Goal
 Produce a finished song from the committed lyrics: a mellow, tear-stained ballad
 titled **"Teresa and Ijooz"**, with **real sung vocals** (not TTS narration),
 generated via the **ElevenLabs Music API**. Deliver to the user:
-1. the audio file, and
-2. a time-synced **`.lrc`** lyric file.
+1. the audio file (`teresa_and_ijooz.mp3`), and
+2. a time-synced **`teresa_and_ijooz.lrc`** lyric file.
 
-## Where things are
-- Branch: **`claude/sweet-fermat-tj1af0`** (develop + push here only).
-- Lyrics + full style/production direction: **`teresa_and_ijooz_lyrics.txt`**.
-- Style summary: mellow melancholic indie folk-pop ballad; soft, breathy female
-  lead on the verge of tears; fingerpicked acoustic guitar + felt piano; warm
-  sustained strings; light brushed percussion entering late; **~68 BPM, D minor**;
-  tender verses, a small swell in the final chorus, then settle soft.
+## ⛔ BLOCKER (must fix before generation is possible)
+The previous handoff assumed egress was set to "full" and ElevenLabs would be
+reachable. **It is not.** Verified this session:
+```
+curl https://api.elevenlabs.io        -> 403 "Host not in allowlist: api.elevenlabs.io"
+curl https://api.us.elevenlabs.io     -> 403 "Host not in allowlist"
+curl https://elevenlabs.io            -> 403 "Host not in allowlist"
+curl https://pypi.org                 -> 200   (so PyPI/pip works)
+curl https://api.github.com           -> reachable
+```
+The environment is on a **curated egress allowlist** that excludes every
+ElevenLabs domain — not "All domains". Disabling the Bash sandbox does **not**
+help: the refusal comes from the upstream environment proxy. Egress is fixed at
+environment-creation time and **cannot be changed from inside a running session.**
 
-## Credentials (read carefully)
-- The ElevenLabs API key is **NOT** in this repo and must never be committed.
-- Expected location: environment variable **`ELEVENLABS_API_KEY`** (set in the
-  environment's settings / secrets, which persists across sessions).
-- First thing to do: `test -n "$ELEVENLABS_API_KEY" && echo present || echo MISSING`.
-  - If `MISSING`, ask the user to paste the key once (then export it for the
-    session); do not write it to a tracked file.
+**To unblock:** edit the environment's network egress policy to allow at least
+`api.elevenlabs.io` (and ideally `elevenlabs.io`, `api.us.elevenlabs.io`, and any
+ElevenLabs storage/CDN host used for audio delivery) — or select "All domains" —
+**then start a NEW session.** Egress changes never apply to an already-running
+session. Docs: https://code.claude.com/docs/en/claude-code-on-the-web
 
-## Network
-- Egress was switched to **full ("All domains")**, so `api.elevenlabs.io` (and the
-  ElevenLabs docs) should now be reachable **in a new session**. Egress rule changes
-  do **not** apply to an already-running session — that was the whole blocker before.
-- Sanity check: `curl -s -o /dev/null -w '%{http_code}\n' https://api.elevenlabs.io`.
+## Branch
+- Latest work (generator + plan + this handoff) is on **`claude/cool-cannon-d1bnz2`**
+  (the active task pinned this branch). The original handoff named
+  `claude/sweet-fermat-tj1af0`; if you continue there, cherry-pick these commits.
 
-## Steps for the new session
-1. Verify key present (above) and reachability:
+## What's ready (committed)
+- `teresa_and_ijooz_lyrics.txt` — lyrics + full style/production direction.
+- `teresa_and_ijooz.plan.json` — **composition plan** built from the lyrics:
+  global + per-section styles, durations (~3:22 ballad, ~68 BPM, D minor), and the
+  exact `lines` per section so the model **sings** the words. Edit freely.
+- `scripts/generate_song.py` — **one-command generator** (offline logic tested;
+  the API call path is UNVERIFIED here because egress was blocked).
+
+## Credentials
+- ElevenLabs key is **NOT** in the repo and must never be committed.
+- Flow: user pastes the key once → export for the session:
+  `export ELEVENLABS_API_KEY='sk_...'` (this session also stashed it at
+  `~/.elevenlabs_key`, outside the tree; `export ELEVENLABS_API_KEY=$(cat ~/.elevenlabs_key)`).
+- `.gitignore` now blocks `.env`, `*.key`, `.elevenlabs_key`, `secrets.*` as a guard.
+
+## Steps for the new session (after egress is fixed)
+1. Confirm key + reachability (expect HTTP 200 + subscription JSON):
    `curl -s -H "xi-api-key: $ELEVENLABS_API_KEY" https://api.elevenlabs.io/v1/user/subscription`
-   → expect HTTP 200 with subscription JSON.
-2. **Confirm the current Music API shape from the official docs first** (the Eleven
-   Music API is newer and may have changed) — likely a `POST` to a
-   `/v1/music`-style compose endpoint that accepts a prompt + the lyrics and
-   returns audio (and possibly word/section timing). Don't hard-code an endpoint
-   from memory without checking.
-3. Compose the track: feed the **style direction** as the prompt and the **lyrics**
-   (verses/chorus/bridge structure) so the model actually *sings* them. Request a
-   vocal mix, slow tempo, D minor, full song length.
-4. Save audio to the repo (e.g. `teresa_and_ijooz.mp3`).
-5. Produce **`teresa_and_ijooz.lrc`**: if the API returns alignment/timestamps, use
-   them; otherwise derive timings from the returned duration + section structure.
-6. **Deliver** both files to the user with `SendUserFile`, and commit them to the
-   branch. Keep the key out of every commit.
+2. `pip install elevenlabs requests`
+3. `python scripts/generate_song.py`
+   → writes `teresa_and_ijooz.mp3`, `teresa_and_ijooz.lrc`, `teresa_and_ijooz.metadata.json`.
+4. **Listen / verify** vocals are sung (not spoken) and the .lrc lines line up.
+   If timing is off, re-run — the script prefers word-level timestamps from the API
+   and only falls back to section timing when they're absent.
+5. **Deliver** the `.mp3` and `.lrc` with `SendUserFile`, and commit them. Key out
+   of every commit.
+
+## Confirmed ElevenLabs Music API shape (from docs research, Jun 2026)
+- Auth header: `xi-api-key: <key>`.
+- `POST /v1/music` — compose; returns raw audio bytes. Body: `prompt` (≤4100 chars)
+  **or** `composition_plan` (not both), `music_length_ms`, `output_format`
+  (e.g. `mp3_44100_128`; `mp3_44100_192` needs Creator tier).
+- `POST /v1/music/detailed` — returns audio **plus** JSON metadata
+  (`composition_plan` + `song_metadata`); supports **word-level timestamps** for the
+  vocal (parameter ~`with_timestamps`) → used to build a precise `.lrc`.
+- `composition_plan` = `{ positiveGlobalStyles[], negativeGlobalStyles[],
+  sections[ { sectionName, positiveLocalStyles[], negativeLocalStyles[], durationMs, lines[] } ] }`.
+  The `lines[]` are the sung lyrics. (This is the newer Music API — re-confirm field
+  names against the live docs before trusting blindly:
+  https://elevenlabs.io/docs/api-reference/music/compose-detailed)
 
 ## Status at handoff
-- ✅ Lyrics + style committed (`5393ede`).
-- ✅ Egress set to full (takes effect on the *next* session).
-- ⏳ Pending: key available as `ELEVENLABS_API_KEY` in a fresh session → then generate.
+- ✅ Lyrics + style committed.
+- ✅ Composition plan + turnkey generator committed (offline logic tested).
+- ⛔ Egress to ElevenLabs is **blocked in this session** — generation impossible here.
+- ⏳ Next: fix egress → fresh session → `python scripts/generate_song.py` → deliver.

@@ -1,0 +1,122 @@
+{
+  "_comment": "ElevenLabs Music API composition_plan for 'Teresa and Ijooz'. Built from teresa_and_ijooz_lyrics.txt. The 'lines' arrays carry the EXACT lyrics so the model SINGS them (real vocals, not TTS). Durations target a ~3:20 ballad at ~68 BPM in D minor; tweak freely. Instrumental sections have empty 'lines'. Field names follow the documented plan shape (positiveGlobalStyles / negativeGlobalStyles / sections[ sectionName, positiveLocalStyles, negativeLocalStyles, durationMs, lines ]) — verify against the live docs before the run.",
+  "positiveGlobalStyles": [
+    "mellow melancholic indie folk-pop ballad",
+    "soft intimate breathy female lead vocal, on the verge of tears",
+    "fingerpicked acoustic guitar",
+    "felt piano",
+    "warm sustained strings",
+    "light brushed percussion entering late",
+    "slow tempo around 68 BPM",
+    "key of D minor",
+    "bittersweet, tender, wistful, the kind of song that makes you want to cry",
+    "studio quality, intimate close-mic vocal, natural human singing"
+  ],
+  "negativeGlobalStyles": [
+    "upbeat",
+    "EDM or electronic dance",
+    "heavy or loud drums",
+    "aggressive or distorted electric guitar",
+    "rap or hip-hop",
+    "fast tempo",
+    "male lead vocal",
+    "spoken-word narration or robotic text-to-speech",
+    "auto-tune artifacts"
+  ],
+  "sections": [
+    {
+      "sectionName": "Intro",
+      "positiveLocalStyles": ["solo fingerpicked acoustic guitar", "soft felt piano", "instrumental, no vocals", "sparse and quiet, setting a tender mood"],
+      "negativeLocalStyles": ["vocals", "drums"],
+      "durationMs": 8000,
+      "lines": []
+    },
+    {
+      "sectionName": "Verse 1",
+      "positiveLocalStyles": ["intimate breathy female vocal enters", "sparse fingerpicked guitar and soft piano", "very gentle, wistful"],
+      "negativeLocalStyles": ["drums", "big dynamics"],
+      "durationMs": 30000,
+      "lines": [
+        "The lucky draw spins slow beneath the cold mall light,",
+        "Teresa holds her number like a prayer.",
+        "She's watched the prizes all night long, the blind boxes stacked tight,",
+        "and let herself believe one's waiting there."
+      ]
+    },
+    {
+      "sectionName": "Verse 2",
+      "positiveLocalStyles": ["female vocal continues, a little more longing", "warm sustained strings fade in underneath", "still intimate"],
+      "negativeLocalStyles": ["drums", "loud"],
+      "durationMs": 30000,
+      "lines": [
+        "The girl ahead tears open a little vinyl king,",
+        "the boy beside her gasps — a rare, the gold.",
+        "And everyone is cradling some small, beloved thing,",
+        "while Teresa's hands stay empty in the cold."
+      ]
+    },
+    {
+      "sectionName": "Chorus",
+      "positiveLocalStyles": ["the melody opens up tenderly", "warm strings swell gently", "fuller but still soft and bittersweet"],
+      "negativeLocalStyles": ["heavy drums", "belting"],
+      "durationMs": 30000,
+      "lines": [
+        "'Cause it's two dollars of sunshine,",
+        "two dollars of gold,",
+        "the same paper voucher",
+        "each time the wheel slows.",
+        "Not the box that she dreamed of,",
+        "not the prize on the shelf —",
+        "just a sweet cup of orange",
+        "she'll drink by herself."
+      ]
+    },
+    {
+      "sectionName": "Verse 3",
+      "positiveLocalStyles": ["pull back to intimate fingerpicked guitar and piano", "breathy vocal close to the mic", "quiet and tender again"],
+      "negativeLocalStyles": ["drums", "loud"],
+      "durationMs": 30000,
+      "lines": [
+        "She walks up to the corner where the oranges still spin,",
+        "and feeds the little voucher through the seam.",
+        "They tumble and they're halved with that soft, familiar whir —",
+        "the only thing tonight that came for her."
+      ]
+    },
+    {
+      "sectionName": "Bridge",
+      "positiveLocalStyles": ["emotional lift, voice on the verge of tears", "strings and piano grow warmer", "most heartbreaking moment"],
+      "negativeLocalStyles": ["aggressive", "fast"],
+      "durationMs": 24000,
+      "lines": [
+        "And maybe it's the sweetest cup around,",
+        "and maybe that's the saddest part she's found:",
+        "she'd trade away the orange and the gold",
+        "for one small box that's hers to have and hold."
+      ]
+    },
+    {
+      "sectionName": "Final Chorus",
+      "positiveLocalStyles": ["a small swell, fuller arrangement", "light brushed percussion enters", "warm strings rise, still tender, then begins to settle"],
+      "negativeLocalStyles": ["heavy drums", "harsh"],
+      "durationMs": 36000,
+      "lines": [
+        "So it's two dollars of sunshine,",
+        "two dollars of gold,",
+        "and the line shuffles on",
+        "and the evening grows old.",
+        "She lifts up the cup,",
+        "takes a sip, gives a smile —",
+        "sweet Teresa and Ijooz,",
+        "for a little while."
+      ]
+    },
+    {
+      "sectionName": "Outro",
+      "positiveLocalStyles": ["strip back to soft fingerpicked guitar and felt piano", "instrumental, settle soft and quiet", "gentle fade"],
+      "negativeLocalStyles": ["vocals", "drums", "loud"],
+      "durationMs": 14000,
+      "lines": []
+    }
+  ]
+}

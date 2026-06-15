@@ -5,3 +5,15 @@ Thumbs.db
 *.swp
 *~
 /.test-install/
+
+# Secrets — never commit API keys. (The ElevenLabs key lives in $ELEVENLABS_API_KEY
+# or ~/.elevenlabs_key, both outside the tree, but guard against accidents anyway.)
+.env
+.env.*
+*.key
+.elevenlabs_key
+secrets.*
+
+# Python artifacts (scripts/generate_song.py)
+__pycache__/
+*.pyc
