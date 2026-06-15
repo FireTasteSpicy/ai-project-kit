@@ -5,3 +5,7 @@ Thumbs.db
 *.swp
 *~
 /.test-install/
+
+# Python bytecode cache from running the generation scripts
+__pycache__/
+*.pyc
