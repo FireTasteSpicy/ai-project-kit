@@ -25,11 +25,20 @@ ElevenLabs domain — not "All domains". Disabling the Bash sandbox does **not**
 help: the refusal comes from the upstream environment proxy. Egress is fixed at
 environment-creation time and **cannot be changed from inside a running session.**
 
-**To unblock:** edit the environment's network egress policy to allow at least
-`api.elevenlabs.io` (and ideally `elevenlabs.io`, `api.us.elevenlabs.io`, and any
-ElevenLabs storage/CDN host used for audio delivery) — or select "All domains" —
-**then start a NEW session.** Egress changes never apply to an already-running
-session. Docs: https://code.claude.com/docs/en/claude-code-on-the-web
+**Why:** the environment's network access defaults to **Trusted** (package
+registries + GitHub only), which is why pip/GitHub work but ElevenLabs doesn't.
+
+**To unblock** (web UI only — there is no repo file for this): open the environment
+for editing → **Network access** selector → choose **Full** (any domain), or
+**Custom** + add to the **Allowed domains** field:
+```
+api.elevenlabs.io
+*.elevenlabs.io
+```
+keep "Also include default list of common package managers" checked (so pip/GitHub
+keep working), **then start a NEW session.** Egress changes never apply to an
+already-running session. Docs: https://code.claude.com/docs/en/claude-code-on-the-web
+(see "Network access") and https://code.claude.com/docs/en/network-config
 
 ## Branch
 - Latest work (generator + plan + this handoff) is on **`claude/cool-cannon-d1bnz2`**
@@ -43,13 +52,21 @@ session. Docs: https://code.claude.com/docs/en/claude-code-on-the-web
   exact `lines` per section so the model **sings** the words. Edit freely.
 - `scripts/generate_song.py` — **one-command generator** (offline logic tested;
   the API call path is UNVERIFIED here because egress was blocked).
+- `.claude/hooks/session-start.sh` + `.claude/settings.json` — **SessionStart hook**
+  (synchronous, web-only). Each new session it installs `elevenlabs`+`requests` and
+  prints a preflight: is `ELEVENLABS_API_KEY` set, is `api.elevenlabs.io` reachable
+  (egress open?), is the key valid — so you know at a glance whether to run the
+  generator or fix egress first. Takes effect for all sessions once merged to the
+  default branch.
 
 ## Credentials
 - ElevenLabs key is **NOT** in the repo and must never be committed.
-- Flow: user pastes the key once → export for the session:
-  `export ELEVENLABS_API_KEY='sk_...'` (this session also stashed it at
-  `~/.elevenlabs_key`, outside the tree; `export ELEVENLABS_API_KEY=$(cat ~/.elevenlabs_key)`).
-- `.gitignore` now blocks `.env`, `*.key`, `.elevenlabs_key`, `secrets.*` as a guard.
+- **Best:** set `ELEVENLABS_API_KEY` as a persistent **environment secret/variable**
+  in the environment settings — it then survives across sessions and the preflight
+  hook picks it up automatically. (The container is ephemeral, so a key pasted into
+  one session does NOT carry over; don't rely on `~/.elevenlabs_key`.)
+- Otherwise paste it once and `export ELEVENLABS_API_KEY='sk_...'` for that session.
+- `.gitignore` blocks `.env`, `*.key`, `.elevenlabs_key`, `secrets.*` as a guard.
 
 ## Steps for the new session (after egress is fixed)
 1. Confirm key + reachability (expect HTTP 200 + subscription JSON):
