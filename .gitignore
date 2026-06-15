@@ -5,3 +5,7 @@ Thumbs.db
 *.swp
 *~
 /.test-install/
+
+# generated song artifacts (regenerate with: cd song && python make_song.py)
+dist/
+__pycache__/
