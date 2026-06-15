@@ -11,26 +11,31 @@ Deliver to the user:
 1. the audio file (`teresa_and_ijooz.mp3`), and
 2. a time-synced **`.lrc`** lyric file (`teresa_and_ijooz.lrc`).
 
-## ⚠️ Important correction: egress is an ALLOWLIST, not "full"
-Empirically (tested 2026-06-15), raw network egress from the container is a
-**host allowlist**. Only **`api.elevenlabs.io`** is currently allowed; everything
-else (`api.mureka.ai`, `api.openai.com`, `example.com`, …) returns:
-`Host not in allowlist: <host>. Add this host to your network egress settings.`
-The earlier note that egress was "switched to full / All domains" was **incorrect**.
-`WebSearch`/`WebFetch` still work (they route through the harness, not the
-container), but `curl`/`requests` are limited to the allowlist. Egress changes
-typically only take effect in a **new** session.
+## ✅ Egress update (2026-06-15, new session): `api.mureka.ai` now allowed
+As of this session, `api.mureka.ai` **is reachable** (`GET https://api.mureka.ai`
+→ HTTP 200; `GET /v1/account/billing` → HTTP 200 with the API key). The earlier
+egress blocker for Mureka is **resolved**. Network egress is still a **host
+allowlist** (not "full"): `api.elevenlabs.io` and `api.mureka.ai` are allowed;
+arbitrary hosts still return `Host not in allowlist: <host>`. `WebSearch`/
+`WebFetch` route through the harness and are unaffected. Egress changes typically
+take effect only in a **new** session.
 
 ## Two ready-to-run paths
 
-### Path A — Mureka (free-tier, currently the active plan)
-- Key: **`MUREKA_API_KEY`** is present in the environment (verified, len 36).
-- Script: **`scripts/generate_music_mureka.py`** (compiles; reaches the API and
-  fails only at egress). It calls `POST /v1/song/generate {lyrics, model, prompt}`,
-  polls `GET /v1/song/query/{id}` until done, downloads the audio, and writes the
-  `.lrc` (duration-based, since Mureka returns no word timestamps).
-- ⛔ **Blocker: add `api.mureka.ai` to the environment's egress allowlist**, then
-  run in a **new** session: `python3 scripts/generate_music_mureka.py`.
+### Path A — Mureka (currently the active plan; egress now OK, but NEEDS PAID CREDITS)
+- Key: **`MUREKA_API_KEY`** is present in the environment (verified, len 36) and
+  authenticates fine (`/v1/account/billing` → 200).
+- Script: **`scripts/generate_music_mureka.py`** — contract VERIFIED live. It calls
+  `POST /v1/song/generate {lyrics, model, prompt}`, polls `GET /v1/song/query/{id}`
+  until done, downloads the audio, and writes the `.lrc` (duration-based, since
+  Mureka returns no word timestamps).
+- ⛔ **Blocker (new): the Mureka account has no usable credits.**
+  `POST /v1/song/generate` → **HTTP 429** `{"error":{"message":"You exceeded your
+  current quota, please check your plan and billing details"}}`. The earlier
+  "free-tier, no card" assumption was wrong: the Mureka **API** is a paid credit
+  system (~$48 / 1600 credits, balance valid ~12 months). To unblock, add API
+  credits to the account behind `MUREKA_API_KEY` at platform.mureka.ai, then run
+  `python3 scripts/generate_music_mureka.py`.
 - API contract (confirmed from Mureka docs/examples):
   - base `https://api.mureka.ai` (override via `MUREKA_API_URL`)
   - auth `Authorization: Bearer $MUREKA_API_KEY`
@@ -56,7 +61,8 @@ typically only take effect in a **new** session.
 3. Commit both to the branch. Keep every key out of every commit.
 
 ## Where things are
-- Active feature branch: **`claude/busy-einstein-wv0fby`** (develop + push here).
+- Active feature branch: **`claude/epic-carson-ded5q6`** (develop + push here;
+  contains all prior work). The older `claude/busy-einstein-wv0fby` is superseded.
 - Lyrics + full style/production direction: **`teresa_and_ijooz_lyrics.txt`**.
 - Generators: **`scripts/generate_music_mureka.py`** (A), **`scripts/generate_music.py`** (B).
 - Style summary: mellow melancholic indie folk-pop ballad; soft, breathy female
@@ -76,5 +82,7 @@ Real *web apps* are free everywhere; free *APIs that sing custom lyrics* are rar
 ## Status at handoff
 - ✅ Lyrics + style committed; both generator scripts committed and validated.
 - ✅ Keys present: `MUREKA_API_KEY`, `ELEVENLABS_API_KEY`.
-- ⛔ Path A blocked on egress allowlist (`api.mureka.ai`) — needs a new session.
-- ⛔ Path B blocked on a paid ElevenLabs plan.
+- ✅ Mureka egress resolved; Mureka API contract verified live (auth + endpoints OK).
+- ⛔ Path A (Mureka) now blocked on **paid API credits** (HTTP 429 quota exceeded).
+- ⛔ Path B (ElevenLabs) blocked on a **paid plan** (HTTP 402 paid_plan_required).
+- ➡️ Both ready paths now require a paid account action — awaiting user decision.
